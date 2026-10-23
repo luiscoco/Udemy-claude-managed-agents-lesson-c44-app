@@ -42,29 +42,74 @@ CLAUDE_MANAGED_ENVIRONMENT_ID=your_environment_id
 PORT=3044
 ```
 
-## How the application was developed
+## How the app was build
 
-The browser collects inputs; the Node host validates requests; the lesson implementation produces observable evidence. The architecture page walks through the real source with numbered steps, prerequisite configuration, source filenames and code excerpts.
+### 1. Check tools, egress and credential scope independently
 
-### Lesson implementation
+This read-only-report policy has no need for shell access, unrestricted egress or write-capable service credentials. Each excess capability creates its own finding.
 
-[src/lesson.ts](https://github.com/luiscoco/Udemy-claude-managed-agents-lesson-c44-app/blob/main/src/lesson.ts)
+Source: [src/lesson.ts](src/lesson.ts#L13) · selected statements
 
 ```typescript
-  async run(input) {
+const violations: string[] = [];
 
-const violations:string[]=[];
-if(flag(input,"shellEnabled"))violations.push("Shell is unnecessary for the read-only report");
-if(flag(input,"unrestrictedNetwork"))violations.push("Broad network egress is outside this task policy");
-if(flag(input,"vaultWriteScope"))violations.push("Write-capable service credentials exceed required scope");
-if(number(input,"budgetCents")<1||number(input,"budgetCents")>50)violations.push("Budget is outside the demo host policy");
-return report(violations.length?"rejected":"passed","Assessed independent least-privilege layers",{violations:violations.length,findings:violations,policy:"read-only-report-v1"},["Review required tools","Review allowed destinations","Review service credential scopes","Bound spending separately"]);
+if (flag(input, "shellEnabled"))
+  violations.push("Shell is unnecessary for the read-only report");
 
-  }
-};
+if (flag(input, "unrestrictedNetwork"))
+  violations.push("Broad network egress is outside this task policy");
+
+if (flag(input, "vaultWriteScope"))
+  violations.push("Write-capable service credentials exceed required scope");
 ```
 
-Read the architecture page for the remaining source excerpts and explanations, including input handling and optional provider behavior. The diagram describes this application, rather than implying that an external integration has been implemented.
+### 2. Enforce a separate spending bound
+
+The demo budget must be between 1 and 50 cents. The report succeeds only when every independent layer has no findings; assessing flags does not apply a real sandbox policy.
+
+Source: [src/lesson.ts](src/lesson.ts#L17) · selected statements
+
+```typescript
+if (number(input, "budgetCents") < 1 || number(input, "budgetCents") > 50)
+  violations.push("Budget is outside the demo host policy");
+
+return report(
+  violations.length ? "rejected" : "passed",
+  "Assessed independent least-privilege layers",
+  {
+    violations: violations.length,
+    findings: violations,
+    policy: "read-only-report-v1",
+  },
+  [
+    "Review required tools",
+    "Review allowed destinations",
+    "Review service credential scopes",
+    "Bound spending separately",
+  ],
+);
+```
+
+### Check your understanding
+
+Run **A narrow reader configuration** in the application. Compare the result with these scenario expectations:
+
+```json
+{
+  "input": {
+    "shellEnabled": false,
+    "unrestrictedNetwork": false,
+    "vaultWriteScope": false,
+    "budgetCents": 25
+  },
+  "expectedOutcome": "passed",
+  "checkEvidence": {
+    "violations": 0
+  }
+}
+```
+
+Then try **Reject an overprivileged profile**. Its expected outcome is `rejected`; identify the condition or evidence field that explains the difference.
 
 ## Validation
 
