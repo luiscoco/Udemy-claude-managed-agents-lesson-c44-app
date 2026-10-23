@@ -1,0 +1,29 @@
+{
+  "source": "live-provider-commentary",
+  "sessionId": "sesn_01KbwzxZSwrrAist7GaMwSoY",
+  "answer": "This is a local teaching experiment on **Security Hardening** that walks through four review steps: checking required tools, allowed destinations, service credential scopes, and separately bounded spending. The experiment assessed independent least-privilege layers and recorded zero violations under a read-only reporting policy. The outcome is marked as passed, serving as an illustrative example of layered access control review \u2014 not evidence of any live system integration or executed tooling.",
+  "stopReason": "end_turn",
+  "eventTypes": [
+    "session.status_running",
+    "session.thread_status_running",
+    "user.message",
+    "span.model_request_start",
+    "agent.thinking",
+    "agent.message",
+    "span.model_request_end",
+    "session.thread_status_idle",
+    "session.usage",
+    "session.status_idle"
+  ],
+  "requestUsage": [
+    {
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 573,
+      "output_tokens": 124,
+      "speed": "standard"
+    }
+  ],
+  "experimentHash": "b460ca9bf4c44445fd9117be63a174493db624008e3f56a716740b62dc070e44",
+  "scope": "A real text-only model response about the local experiment. External integrations and the experiment's correctness are not certified by this response."
+}

@@ -1,0 +1,40 @@
+import type Anthropic from "@anthropic-ai/sdk";
+import type { EnvironmentCreateParams, BetaEnvironment } from "@anthropic-ai/sdk/resources/beta/environments/environments";
+import type { AgentCreateParams } from "@anthropic-ai/sdk/resources/beta/agents/agents";
+export const environmentRequest = {
+  name: "teaching-restricted-environment",
+  config: { type: "cloud", networking: {
+    type: "limited", allow_package_managers: false, allow_mcp_servers: false,
+    allowed_hosts: ["help.example.com"]
+  } }
+} satisfies EnvironmentCreateParams;
+// Opt in only to the built-in reader for this hypothetical task. No shell,
+// web tool or MCP toolset is enabled here. Permissions are separate from enablement.
+export const minimalTools = [{ type: "agent_toolset_20260401", default_config: { enabled: false },
+  configs: [{ name: "read", enabled: true, permission_policy: { type: "always_ask" } }]
+}] satisfies NonNullable<AgentCreateParams["tools"]>;
+export function verifyEnvironment(environment: BetaEnvironment) {
+  if (environment.config.type !== "cloud") throw new Error("Wrong environment type");
+  const network = environment.config.networking;
+  if (network.type !== "limited" || network.allow_package_managers !== false ||
+      network.allow_mcp_servers !== false || network.allowed_hosts.length !== 1 ||
+      network.allowed_hosts[0] !== "help.example.com")
+    throw new Error("Unexpected effective network settings");
+  return environment.id;
+}
+export async function provision(client: Anthropic) {
+  const created = await client.beta.environments.create(environmentRequest,
+    { maxRetries: 0, timeout: 10000 });
+  // Keep this ID even if verification fails so the operator can reconcile/clean up.
+  const recordedEnvironmentId = created.id;
+  try { verifyEnvironment(created); }
+  catch { throw new Error(`Review created environment ${recordedEnvironmentId}; settings mismatch`); }
+  return recordedEnvironmentId;
+}
+// No top-level invocation: importing this file creates no environment.
+// These network flags remove broad destination allowances; they do not uninstall
+// package managers or disable MCP tools. allowed_hosts grants host reachability,
+// not a read-only operation policy. Tools, service authorization, host egress,
+// web domain controls, vault scopes and session budgets are separate layers.
+// The example hostname is documentation-only; it does not promise private
+// network connectivity from an Anthropic-hosted cloud container.

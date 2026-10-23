@@ -1,0 +1,13 @@
+{
+  "lesson": "C44",
+  "title": "Security Hardening",
+  "path": "lesson-c44\\lesson-c44-app",
+  "port": 3044,
+  "scenarios": 2,
+  "state": "implemented and verified",
+  "liveScope": "text-only commentary about the local result",
+  "typecheck": true,
+  "localTests": true,
+  "browserSmoke": "passed: desktop, mobile, scenario controls, source view",
+  "liveCommentarySmoke": "passed: real text-only session reached end_turn"
+}
